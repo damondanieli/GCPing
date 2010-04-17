@@ -8,19 +8,18 @@
 
 #import "GCPingAppDelegate.h"
 #import "GCPingViewController.h"
+#import "DDLog.h"
 
 @implementation GCPingAppDelegate
 
 @synthesize window;
 @synthesize viewController;
 
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {    
-    
-    // Override point for customization after app launch    
-	return YES;
-}
+    DDLog(@"launchOptions=%@", launchOptions);
 
+    return YES;
+}
 
 - (void)dealloc {
     [viewController release];

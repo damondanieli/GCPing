@@ -11,9 +11,11 @@
 #import "GCPingViewController.h"
 
 @interface GCPingViewController ()
-- (void)startUserAuthentication;
 - (void)setupAudioSession;
+- (void)startUserAuthentication;
 - (void)createGameSessionWithMatch:(GKMatch *)match;
+- (void)showMatchmakerWithRequest:(GKMatchRequest *)request;
+- (void)showMatchmakerWithInvite:(GKInvite *)invite;
 - (void)showError:(NSError *)error;
 @end
 
@@ -29,7 +31,6 @@
     [super viewDidLoad];
     
     [self setupAudioSession];
-    
     [self startUserAuthentication];
 }
 
@@ -44,16 +45,13 @@
 
 - (IBAction)startGameButtonPressed:(id)sender {
     DDLog(@"");
-
+    
     GKMatchRequest *request = [[[GKMatchRequest alloc] init] autorelease];
     request.minPlayers = minPlayersSegmentedControl.selectedSegmentIndex + 2;
     request.maxPlayers = maxPlayersSegmentedControl.selectedSegmentIndex + 2;
     request.desiredPlayers = desiredPlayersSegmentedControl.selectedSegmentIndex + 2;
-    
-    GKMatchmakerViewController *matchMakerView = [[GKMatchmakerViewController alloc] initWithMatchRequest:request];
-    matchMakerView.delegate = self;
-    matchMakerView.hosted = NO;
-    [self presentModalViewController:matchMakerView animated:YES];
+
+    [self showMatchmakerWithRequest:request];
 }
 
 #pragma mark -
@@ -88,9 +86,40 @@
 #pragma mark -
 #pragma mark Helpers
 
+- (void)setupAudioSession {
+    DDLog(@"");
+    
+    OSStatus osRes = 0;
+    osRes = AudioSessionInitialize(NULL, NULL, NULL, NULL);
+    if (osRes) {
+        DDLog(@"Initializing Audio Session Failed: %ld", (long)osRes);
+    }
+    
+    osRes = AudioSessionSetActive(true);
+    if (osRes) {
+        DDLog(@"AudioSessionSetActive Failed: %ld", (long)osRes);
+    }
+    
+    UInt32 category = kAudioSessionCategory_PlayAndRecord;
+    osRes = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(category), &category);
+    if (osRes) {
+        DDLog(@"AudioSessionSetProperty Failed: %ld", (long)osRes);
+    }
+}
+
+- (void)setupInviteHandler {
+    DDLog(@"");
+
+    [[GKMatchmaker sharedMatchmaker] setInviteHandler:^(GKInvite *invite) {
+        [self showMatchmakerWithInvite:invite];
+    }];
+}
+
 - (void)localPlayerDidAuthenticate {
     signInButton.hidden = YES;
     startGameButton.hidden = NO;
+    
+    [self setupInviteHandler];
 }
 
 - (void)localPlayerDidFailToAuthenticateWithError:(NSError *)error {
@@ -117,33 +146,33 @@
     }];
 }
 
-- (void)setupAudioSession {
-    DDLog(@"");
-    
-    OSStatus osRes = 0;
-    osRes = AudioSessionInitialize(NULL, NULL, NULL, NULL);
-    if (osRes) {
-        DDLog(@"Initializing Audio Session Failed: %ld", (long)osRes);
-    }
-    
-    osRes = AudioSessionSetActive(true);
-    if (osRes) {
-        DDLog(@"AudioSessionSetActive Failed: %ld", (long)osRes);
-    }
-    
-    UInt32 category = kAudioSessionCategory_PlayAndRecord;
-    osRes = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(category), &category);
-    if (osRes) {
-        DDLog(@"AudioSessionSetProperty Failed: %ld", (long)osRes);
-    }
-}
-
 - (void)createGameSessionWithMatch:(GKMatch *)match {
     DDLog(@"match=%@", match);
     
     GameSessionViewController *gsvc = [[[GameSessionViewController alloc] initWithDelegate:self withMatch:match] autorelease];
     [self presentModalViewController:gsvc animated:YES];
 }
+
+- (void)showMatchmaker:(GKMatchmakerViewController *)matchmakerViewController {
+    matchmakerViewController.delegate = self;
+    matchmakerViewController.hosted = NO;
+    [self presentModalViewController:matchmakerViewController animated:YES];
+}
+
+- (void)showMatchmakerWithRequest:(GKMatchRequest *)request {
+    DDLog(@"");
+    
+    [self showMatchmaker:[[GKMatchmakerViewController alloc] initWithMatchRequest:request]];
+}
+
+- (void)showMatchmakerWithInvite:(GKInvite *)invite {
+    DDLog(@"invite=%@", invite);
+    
+    [activityIndicatorView stopAnimating];
+    
+    [self showMatchmaker:[[GKMatchmakerViewController alloc] initWithInvite:invite]];
+}
+
 
 - (void)showError:(NSError *)error {
     DDLog(@"error=%@", error);

@@ -132,9 +132,10 @@
     DDLog(@"");
 
     NSError *error;
-    [_match sendDataToAllPlayers:[NSData dataWithBytes:"ping" length:5] withDataMode:GKMatchSendDataReliable error:&error];
-    if (error != nil) {
-        DDLog(@"error=%@", [error localizedDescription]);
+    if ( ! [_match sendDataToAllPlayers:[NSData dataWithBytes:"ping" length:5] withDataMode:GKMatchSendDataReliable error:&error]) {
+        if (error != nil) {
+            DDLog(@"error=%@", [error localizedDescription]);
+        }
     }
 }
 
