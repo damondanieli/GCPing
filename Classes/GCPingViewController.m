@@ -3,7 +3,7 @@
 //  GCPing
 //
 //  Created by Damon Danieli on 4/16/10.
-//  Copyright __MyCompanyName__ 2010. All rights reserved.
+//  Copyright Damon Danieli 2010. All rights reserved.
 //
 
 #import <AudioToolbox/AudioToolbox.h>

@@ -3,7 +3,7 @@
 //  GCPing
 //
 //  Created by Damon Danieli on 4/16/10.
-//  Copyright 2010 __MyCompanyName__. All rights reserved.
+//  Copyright 2010 Damon Danieli. All rights reserved.
 //
 
 #import "GameSessionViewController.h"
