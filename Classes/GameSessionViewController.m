@@ -24,6 +24,9 @@
 - (void)showConnected:(NSString *)playerName;
 - (void)showDisconnected:(NSString *)playerName;
 - (void)enableVoiceChat:(BOOL)enable;
+- (void)preparePingSound;
+- (void)unpreparePingSound;
+- (void)playPingSound;
 @end
 
 @implementation GameSessionViewController
@@ -49,6 +52,8 @@
 
 - (void)dealloc {
     self.alertView = nil;
+    
+    [self unpreparePingSound];
 
     [self disconnect];
 
@@ -67,6 +72,8 @@
         self.delegate = d;
         self.match = m;
         _match.delegate = self;
+
+        [self preparePingSound];
 
         [self enableVoiceChat:YES];
     }
@@ -98,6 +105,8 @@
 
 - (void)showPinged {
     DDLog(@"");
+
+    [self playPingSound];
 
     self.statusLabel.text = @"Pinged!";
     [_pingTimer invalidate];
@@ -195,8 +204,8 @@
 
     [self setStatus:@""];
 
-    self.alertView = [[[UIAlertView alloc] initWithTitle:@"Game Over"
-                                                 message:[NSString stringWithFormat:@"%@ disconnected.", playerName]
+    self.alertView = [[[UIAlertView alloc] initWithTitle:@"Player Disconnected"
+                                                 message:[NSString stringWithFormat:@"%@ left the session.", playerName]
                                                 delegate:self 
                                        cancelButtonTitle:@"Close"
                                        otherButtonTitles:nil] autorelease];
@@ -239,6 +248,29 @@
         [_voiceChat stop];
     }
     _voiceChat.active = enable;
+}
+
+- (void)preparePingSound {
+    DDLog(@"");
+
+    CFBundleRef mainBundle = CFBundleGetMainBundle ();
+    pingSoundURLRef = CFBundleCopyResourceURL(mainBundle, CFSTR("ping"), CFSTR ("wav"), NULL);
+    AudioServicesCreateSystemSoundID(pingSoundURLRef, &pingSound);
+}
+
+- (void)unpreparePingSound {
+    DDLog(@"");
+
+    AudioServicesDisposeSystemSoundID(pingSound);
+    CFRelease(pingSoundURLRef);
+    pingSound = (SystemSoundID)nil;
+    pingSoundURLRef = nil;
+}
+
+- (void)playPingSound {
+    DDLog(@"");
+
+    AudioServicesPlaySystemSound(pingSound);
 }
 
 #pragma mark -

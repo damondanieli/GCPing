@@ -20,6 +20,7 @@
 		E4E2F5BD1179677200C21A0A /* GameSessionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E4E2F5BB1179677200C21A0A /* GameSessionViewController.m */; };
 		E4E2F5BE1179677200C21A0A /* GameSessionViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = E4E2F5BC1179677200C21A0A /* GameSessionViewController.xib */; };
 		E4E2F60511796C4F00C21A0A /* ping.png in Resources */ = {isa = PBXBuildFile; fileRef = E4E2F60411796C4F00C21A0A /* ping.png */; };
+		E4E2F6B711798AB700C21A0A /* ping.wav in Resources */ = {isa = PBXBuildFile; fileRef = E4E2F6B611798AB700C21A0A /* ping.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +44,7 @@
 		E4E2F5BB1179677200C21A0A /* GameSessionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameSessionViewController.m; sourceTree = "<group>"; };
 		E4E2F5BC1179677200C21A0A /* GameSessionViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = GameSessionViewController.xib; path = Classes/GameSessionViewController.xib; sourceTree = "<group>"; };
 		E4E2F60411796C4F00C21A0A /* ping.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ping.png; sourceTree = "<group>"; };
+		E4E2F6B611798AB700C21A0A /* ping.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ping.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +109,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				E4E2F6B611798AB700C21A0A /* ping.wav */,
 				E4E2F60411796C4F00C21A0A /* ping.png */,
 				E4E2F5BC1179677200C21A0A /* GameSessionViewController.xib */,
 				2899E5210DE3E06400AC0155 /* GCPingViewController.xib */,
@@ -174,6 +177,7 @@
 				2899E5220DE3E06400AC0155 /* GCPingViewController.xib in Resources */,
 				E4E2F5BE1179677200C21A0A /* GameSessionViewController.xib in Resources */,
 				E4E2F60511796C4F00C21A0A /* ping.png in Resources */,
+				E4E2F6B711798AB700C21A0A /* ping.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

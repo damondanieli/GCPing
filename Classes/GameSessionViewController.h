@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import <GameKit/GameKitBeta.h>
+#import <AudioToolbox/AudioToolbox.h>
 
 @protocol GameSessionViewControllerDelegate;
 
@@ -23,6 +24,8 @@
     GKVoiceChat *_voiceChat;
     NSTimer *_pingTimer;
     UIAlertView *_alertView;
+    CFURLRef pingSoundURLRef;
+    SystemSoundID pingSound;
 }
 
 @property (nonatomic, assign) id<GameSessionViewControllerDelegate> delegate;

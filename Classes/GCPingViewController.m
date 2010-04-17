@@ -103,8 +103,14 @@
     UInt32 category = kAudioSessionCategory_PlayAndRecord;
     osRes = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(category), &category);
     if (osRes) {
-        DDLog(@"AudioSessionSetProperty Failed: %ld", (long)osRes);
+        DDLog(@"AudioSessionSetProperty kAudioSessionCategory_PlayAndRecord Failed: %ld", (long)osRes);
     }
+    UInt32 allowMixing = true;
+    osRes = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof(allowMixing), &allowMixing);
+    if (osRes) {
+        DDLog(@"AudioSessionSetProperty kAudioSessionProperty_OverrideCategoryMixWithOthers Failed: %ld", (long)osRes);
+    }
+    
 }
 
 - (void)setupInviteHandler {
