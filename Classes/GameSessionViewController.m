@@ -175,7 +175,7 @@
 #pragma mark Helpers
 
 - (void)setStatus:(NSString *)status {
-    DDLog(@"");
+    DDLog(@"status=%@", status);
     if (status = nil) {
         status = @"Waiting...";
     }

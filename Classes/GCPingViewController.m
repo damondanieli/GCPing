@@ -49,7 +49,6 @@
     GKMatchRequest *request = [[[GKMatchRequest alloc] init] autorelease];
     request.minPlayers = minPlayersSegmentedControl.selectedSegmentIndex + 2;
     request.maxPlayers = maxPlayersSegmentedControl.selectedSegmentIndex + 2;
-    request.desiredPlayers = desiredPlayersSegmentedControl.selectedSegmentIndex + 2;
 
     [self showMatchmakerWithRequest:request];
 }
@@ -110,7 +109,11 @@
     if (osRes) {
         DDLog(@"AudioSessionSetProperty kAudioSessionProperty_OverrideCategoryMixWithOthers Failed: %ld", (long)osRes);
     }
-    
+    UInt32 route = kAudioSessionOverrideAudioRoute_Speaker;
+    osRes = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryDefaultToSpeaker, sizeof(route), &route);
+    if (osRes) {
+        DDLog(@"AudioSessionSetProperty kAudioSessionOverrideAudioRoute_Speaker Failed: %ld", (long)osRes);
+    }
 }
 
 - (void)setupInviteHandler {

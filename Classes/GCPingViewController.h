@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <GameKit/GameKitBeta.h>
+#import <GameKit/GameKitPreview.h>
 #import "GameSessionViewController.h"
 
 @interface GCPingViewController : UIViewController <GKMatchmakerViewControllerDelegate, GameSessionViewControllerDelegate> {
@@ -17,7 +17,6 @@
     
     IBOutlet UISegmentedControl *minPlayersSegmentedControl;
     IBOutlet UISegmentedControl *maxPlayersSegmentedControl;
-    IBOutlet UISegmentedControl *desiredPlayersSegmentedControl;
 }
 
 - (IBAction)signInButtonPressed:(id)sender;
