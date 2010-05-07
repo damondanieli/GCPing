@@ -15,7 +15,7 @@
 		2899E5220DE3E06400AC0155 /* GCPingViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2899E5210DE3E06400AC0155 /* GCPingViewController.xib */; };
 		28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD733E0D9D9553002E5188 /* MainWindow.xib */; };
 		28D7ACF80DDB3853001CB0EB /* GCPingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 28D7ACF70DDB3853001CB0EB /* GCPingViewController.m */; };
-		E4E2F5AC1179629F00C21A0A /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4E2F5AB1179629F00C21A0A /* GameKit.framework */; };
+		E45990BA1193CDEE0004A278 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E45990B91193CDEE0004A278 /* GameKit.framework */; };
 		E4E2F5AE117962A800C21A0A /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4E2F5AD117962A800C21A0A /* AudioToolbox.framework */; };
 		E4E2F5BD1179677200C21A0A /* GameSessionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E4E2F5BB1179677200C21A0A /* GameSessionViewController.m */; };
 		E4E2F5BE1179677200C21A0A /* GameSessionViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = E4E2F5BC1179677200C21A0A /* GameSessionViewController.xib */; };
@@ -37,7 +37,7 @@
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* GCPing_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCPing_Prefix.pch; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* GCPing-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GCPing-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
-		E4E2F5AB1179629F00C21A0A /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
+		E45990B91193CDEE0004A278 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
 		E4E2F5AD117962A800C21A0A /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		E4E2F5B61179646100C21A0A /* DDLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDLog.h; sourceTree = "<group>"; };
 		E4E2F5BA1179677200C21A0A /* GameSessionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameSessionViewController.h; sourceTree = "<group>"; };
@@ -55,8 +55,8 @@
 				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
 				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
 				288765A50DF7441C002DB57D /* CoreGraphics.framework in Frameworks */,
-				E4E2F5AC1179629F00C21A0A /* GameKit.framework in Frameworks */,
 				E4E2F5AE117962A800C21A0A /* AudioToolbox.framework in Frameworks */,
+				E45990BA1193CDEE0004A278 /* GameKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,8 +125,8 @@
 				1DF5F4DF0D08C38300B7A737 /* UIKit.framework */,
 				1D30AB110D05D00D00671497 /* Foundation.framework */,
 				288765A40DF7441C002DB57D /* CoreGraphics.framework */,
-				E4E2F5AB1179629F00C21A0A /* GameKit.framework */,
 				E4E2F5AD117962A800C21A0A /* AudioToolbox.framework */,
+				E45990B91193CDEE0004A278 /* GameKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
