@@ -9,8 +9,9 @@
 #import "GameSessionViewController.h"
 #import "DDLog.h"
 
-#define kConfirmDisconnectTag 1
-#define kShowDisconnectedTag  2
+#define kShowConnectingTag    1
+#define kConfirmDisconnectTag 2
+#define kShowDisconnectedTag  3
 
 @interface GameSessionViewController ()
 @property (nonatomic, retain) GKMatch *match;
@@ -23,6 +24,7 @@
 - (void)confirmDisconnect;
 - (void)showConnected:(NSString *)playerName;
 - (void)showDisconnected:(NSString *)playerName;
+- (void)showGameReady;
 - (void)enableVoiceChat:(BOOL)enable;
 - (void)preparePingSound;
 - (void)unpreparePingSound;
@@ -82,8 +84,6 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
-    [self setStatus:nil];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -94,13 +94,23 @@
     [super viewDidUnload];
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    self.alertView = [[[UIAlertView alloc] initWithTitle:@"Connecting"
+                                                 message:@"Waiting for players..."
+                                                delegate:self 
+                                       cancelButtonTitle:@"Quit"
+                                       otherButtonTitles:nil] autorelease];
+    _alertView.tag = kShowConnectingTag;
+    [_alertView show];
+}
+
 #pragma mark -
 #pragma mark GKMatchDelegate methods
 
 - (void)updateStatus:(NSTimer *)theTimer {
     DDLog(@"");
 
-    [self setStatus:nil];
+    [self setStatus:@""];
 }
 
 - (void)showPinged {
@@ -125,6 +135,9 @@
     switch (state) {
         case GKPlayerStateConnected:
             [self showConnected:player.alias];
+            if (match.expectedPlayerCount == 0) {
+                [self showGameReady];
+            }
             break;
         case GKPlayerStateDisconnected:
             [self showDisconnected:player.alias];
@@ -176,9 +189,7 @@
 
 - (void)setStatus:(NSString *)status {
     DDLog(@"status=%@", status);
-    if (status = nil) {
-        status = @"Waiting...";
-    }
+
     self.statusLabel.text = status;
 }
 
@@ -211,6 +222,12 @@
                                        otherButtonTitles:nil] autorelease];
     _alertView.tag = kShowDisconnectedTag;
     [_alertView show];
+}
+
+- (void)showGameReady {
+    DDLog(@"");
+    
+    self.alertView = nil;
 }
 
 - (void)confirmDisconnect {
@@ -283,6 +300,9 @@
     _alertView = nil;
 
     switch(alertView.tag) {
+        case kShowConnectingTag:
+            [self sessionDisconnected];
+            break;
         case kConfirmDisconnectTag:
             if (buttonIndex == 1) {
                 [self sessionDisconnected];
