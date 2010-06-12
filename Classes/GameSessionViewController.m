@@ -22,6 +22,7 @@
 - (void)setStatus:(NSString *)status;
 - (void)disconnect;
 - (void)confirmDisconnect;
+- (void)showConnecting;
 - (void)showConnected:(NSString *)playerName;
 - (void)showDisconnected:(NSString *)playerName;
 - (void)showGameReady;
@@ -95,13 +96,7 @@
 }
 
 - (void)viewWillAppear:(BOOL)animated {
-    self.alertView = [[[UIAlertView alloc] initWithTitle:@"Connecting"
-                                                 message:@"Waiting for players..."
-                                                delegate:self 
-                                       cancelButtonTitle:@"Quit"
-                                       otherButtonTitles:nil] autorelease];
-    _alertView.tag = kShowConnectingTag;
-    [_alertView show];
+    [self showConnecting];
 }
 
 #pragma mark -
@@ -135,6 +130,7 @@
     switch (state) {
         case GKPlayerStateConnected:
             [self showConnected:player.alias];
+            
             if (match.expectedPlayerCount == 0) {
                 [self showGameReady];
             }
@@ -203,6 +199,24 @@
         [_match disconnect];
         self.match = nil;
     }
+}
+
+- (void)showConnecting {
+    DDLog(@"");
+
+// NOTE: 
+// The UI should wait until all players are connected before starting to send data
+// however, there is a bug in SDK 4.0 GM Seed that does NOT call 
+// - (void)match:(GKMatch *)match player:(GKPlayer *)player didChangeState:(GKPlayerConnectionState)state
+// with GKPlayerStateConnected when inviting friends
+//
+//    self.alertView = [[[UIAlertView alloc] initWithTitle:@"Connecting"
+//                                                 message:@"Waiting for players..."
+//                                                delegate:self 
+//                                       cancelButtonTitle:@"Quit"
+//                                       otherButtonTitles:nil] autorelease];
+//    _alertView.tag = kShowConnectingTag;
+//    [_alertView show];
 }
 
 - (void)showConnected:(NSString *)playerName {
