@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <GameKit/GameKitPreview.h>
+#import <GameKit/GameKit.h>
 #import <AudioToolbox/AudioToolbox.h>
 
 @protocol GameSessionViewControllerDelegate;

@@ -118,25 +118,38 @@
     self.pingTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateStatus:) userInfo:nil repeats:NO];
 }
 
-- (void)match:(GKMatch *)match didReceiveData:(NSData *)data fromPlayer:(GKPlayer *)player {
-    DDLog(@"match=%@, data=%@ player=%@", match, data, player);
+- (void)match:(GKMatch *)match didReceiveData:(NSData *)data fromPlayer:(NSString *)playerID
+{
+    DDLog(@"match=%@, data=%@ player=%@", match, data, playerID);
     
     [self showPinged];
 }
 
-- (void)match:(GKMatch *)match player:(GKPlayer *)player didChangeState:(GKPlayerConnectionState)state {
-    DDLog(@"match=%@, data=%@ state=%ld", match, player, (long)state);
+- (void)match:(GKMatch *)match player:(NSString *)playerID didChangeState:(GKPlayerConnectionState)state {
+    DDLog(@"match=%@, data=%@ state=%ld", match, playerID, (long)state);
 
     switch (state) {
         case GKPlayerStateConnected:
-            [self showConnected:player.alias];
+			[GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:playerID]
+						  withCompletionHandler:^(NSArray *players, NSError *error) {
+							  if ([players count] == 1) {
+								  GKPlayer * player = [players objectAtIndex:0];
+								  [self showConnected:player.alias];
+							  }
+						  }];
             
             if (match.expectedPlayerCount == 0) {
                 [self showGameReady];
             }
             break;
         case GKPlayerStateDisconnected:
-            [self showDisconnected:player.alias];
+			[GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:playerID]
+						  withCompletionHandler:^(NSArray *players, NSError *error) {
+							  if ([players count] == 1) {
+								  GKPlayer * player = [players objectAtIndex:0];
+								  [self showDisconnected:player.alias];
+							  }
+						  }];
             break;
         default:
             break;
@@ -203,20 +216,6 @@
 
 - (void)showConnecting {
     DDLog(@"");
-
-// NOTE: 
-// The UI should wait until all players are connected before starting to send data
-// however, there is a bug in SDK 4.0 GM Seed that does NOT call 
-// - (void)match:(GKMatch *)match player:(GKPlayer *)player didChangeState:(GKPlayerConnectionState)state
-// with GKPlayerStateConnected when inviting friends
-//
-//    self.alertView = [[[UIAlertView alloc] initWithTitle:@"Connecting"
-//                                                 message:@"Waiting for players..."
-//                                                delegate:self 
-//                                       cancelButtonTitle:@"Quit"
-//                                       otherButtonTitles:nil] autorelease];
-//    _alertView.tag = kShowConnectingTag;
-//    [_alertView show];
 }
 
 - (void)showConnected:(NSString *)playerName {
@@ -323,9 +322,7 @@
             }
             break;
         case kShowDisconnectedTag:
-            if ([_match.players count] == 0) {
-                [self sessionDisconnected];
-            }
+			[self sessionDisconnected];
             break;
         default:
             break;

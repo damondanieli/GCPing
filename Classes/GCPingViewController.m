@@ -62,7 +62,7 @@
     [matchmakerViewController dismissModalViewControllerAnimated:YES];
 }
 
-- (void)matchmakerViewController:(GKMatchmakerViewController *)matchmakerViewController didCreateMatch:(GKMatch *)match {
+- (void)matchmakerViewController:(GKMatchmakerViewController *)matchmakerViewController didFindMatch:(GKMatch *)match {
     DDLog(@"match=%@", match);
     
     [matchmakerViewController dismissModalViewControllerAnimated:NO];
@@ -119,7 +119,7 @@
 - (void)setupInviteHandler {
     DDLog(@"");
 
-    [[GKMatchmaker sharedMatchmaker] setInviteHandler:^(GKInvite *invite) {
+    [[GKMatchmaker sharedMatchmaker] setInviteHandler:^(GKInvite *invite, NSArray *playersToInvite) {
         [self showMatchmakerWithInvite:invite];
     }];
 }
@@ -163,7 +163,7 @@
 }
 
 - (void)showMatchmaker:(GKMatchmakerViewController *)matchmakerViewController {
-    matchmakerViewController.delegate = self;
+    matchmakerViewController.matchmakerDelegate = self;
     matchmakerViewController.hosted = NO;
     [self presentModalViewController:matchmakerViewController animated:YES];
 }
