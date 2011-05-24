@@ -10,8 +10,11 @@
 #import "DDLog.h"
 #import "GCPingViewController.h"
 
+BOOL isGameCenterAPIAvailable();
+
 @interface GCPingViewController ()
-- (void)setupAudioSession;
+- (void)setupGameCenter;
+- (void)showNoGameCenter;
 - (void)startUserAuthentication;
 - (void)createGameSessionWithMatch:(GKMatch *)match;
 - (void)showMatchmakerWithRequest:(GKMatchRequest *)request;
@@ -31,7 +34,21 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    [self setupAudioSession];
+    if (isGameCenterAPIAvailable()) {
+        [self setupGameCenter];
+    } else {
+        [self showNoGameCenter];
+    }
+}
+
+- (void)awakeFromNib {
+#if __IPHONE_4_2 <= __IPHONE_OS_VERSION_MAX_ALLOWED
+    // Temporary fix for viewDidLoad being called twice
+    // Do NOT call super
+    // https://devforums.apple.com/message/409261#409261
+#else
+    [super awakeFromNib];
+#endif
 }
 
 #pragma mark -
@@ -116,6 +133,20 @@
     }
 }
 
+- (void)setupGameCenter {
+    DDLog(@"");
+
+    [self setupAudioSession];
+    
+    [self startUserAuthentication];
+}
+
+- (void)showNoGameCenter {
+    DDLog(@"");
+    signInButton.enabled = NO;
+    [self showErrorMessage:@"Game Center is not available"];
+}
+
 - (void)setupInviteHandler {
     DDLog(@"");
 
@@ -149,13 +180,12 @@
 
 - (void)startUserAuthentication {
     DDLog(@"");
-
     [activityIndicatorView startAnimating];
     
     GKLocalPlayer *player = [GKLocalPlayer localPlayer];
     [player authenticateWithCompletionHandler:^(NSError *error) {
         [activityIndicatorView stopAnimating];
-
+        
         if (error) {
             [self localPlayerDidFailToAuthenticateWithError:error];
         }
@@ -205,6 +235,23 @@
 - (void)showError:(NSError *)error {
     DDLog(@"error=%@", error);
     [self showErrorMessage:[error localizedDescription]];
+}
+
+#pragma mark -
+#pragma mark Game Center Helpers
+
+// Check for the availability of Game Center API. 
+BOOL isGameCenterAPIAvailable()
+{
+    // Check for presence of GKLocalPlayer API.
+    Class gcClass = (NSClassFromString(@"GKLocalPlayer"));
+    
+    // The device must be running running iOS 4.1 or later.
+    NSString *reqSysVer = @"4.1";
+    NSString *currSysVer = [[UIDevice currentDevice] systemVersion];
+    BOOL osVersionSupported = ([currSysVer compare:reqSysVer options:NSNumericSearch] != NSOrderedAscending);
+    
+    return (gcClass && osVersionSupported); 
 }
 
 #pragma mark -
