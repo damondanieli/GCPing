@@ -16,6 +16,7 @@
 - (void)createGameSessionWithMatch:(GKMatch *)match;
 - (void)showMatchmakerWithRequest:(GKMatchRequest *)request;
 - (void)showMatchmakerWithInvite:(GKInvite *)invite;
+- (void)showErrorMessage:(NSString *)errorMessage;
 - (void)showError:(NSError *)error;
 @end
 
@@ -31,7 +32,6 @@
     [super viewDidLoad];
     
     [self setupAudioSession];
-    [self startUserAuthentication];
 }
 
 #pragma mark -
@@ -131,10 +131,20 @@
     [self setupInviteHandler];
 }
 
+- (NSString *)decodeAuthenticationError:(NSError *)error {
+    NSString *errorMessage = [error localizedDescription];
+    // Add additional information to developer if we know what causes this error
+    if ([errorMessage isEqualToString:@"The requested operation could not be completed because this application is not recognized by Game Center."]) {
+        // There are several reasons
+        errorMessage = @"In iTunesConnect, create an application but do not upload a binary, then go to Manage Game Center and click Enable";
+    }
+    return errorMessage;
+}
+
 - (void)localPlayerDidFailToAuthenticateWithError:(NSError *)error {
     signInButton.hidden = NO;
 
-    [self showError:error];
+    [self showErrorMessage:[self decodeAuthenticationError:error]];
 }
 
 - (void)startUserAuthentication {
@@ -182,16 +192,19 @@
     [self showMatchmaker:[[GKMatchmakerViewController alloc] initWithInvite:invite]];
 }
 
-
-- (void)showError:(NSError *)error {
-    DDLog(@"error=%@", error);
-
+- (void)showErrorMessage:(NSString *)errorMessage {
     [[[[UIAlertView alloc] initWithTitle:@"Error" 
-                                 message:[error localizedDescription] 
+                                 message:errorMessage 
                                 delegate:nil 
                        cancelButtonTitle:@"Dismiss" 
                        otherButtonTitles:nil] autorelease] 
      show];
+    
+}
+
+- (void)showError:(NSError *)error {
+    DDLog(@"error=%@", error);
+    [self showErrorMessage:[error localizedDescription]];
 }
 
 #pragma mark -

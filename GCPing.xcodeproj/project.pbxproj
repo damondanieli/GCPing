@@ -27,7 +27,7 @@
 		1D3623240D0F684500981E51 /* GCPingAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCPingAppDelegate.h; sourceTree = "<group>"; };
 		1D3623250D0F684500981E51 /* GCPingAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCPingAppDelegate.m; sourceTree = "<group>"; };
 		1D6058910D05DD3D006BFB54 /* GCPing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GCPing.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		2899E5210DE3E06400AC0155 /* GCPingViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = GCPingViewController.xib; sourceTree = "<group>"; };
+		2899E5210DE3E06400AC0155 /* GCPingViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = GCPingViewController.xib; path = ../GCPingViewController.xib; sourceTree = "<group>"; };
 		28AD733E0D9D9553002E5188 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
 		28D7ACF60DDB3853001CB0EB /* GCPingViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCPingViewController.h; sourceTree = "<group>"; };
 		28D7ACF70DDB3853001CB0EB /* GCPingViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCPingViewController.m; sourceTree = "<group>"; };
@@ -42,7 +42,7 @@
 		E4E2F5B61179646100C21A0A /* DDLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDLog.h; sourceTree = "<group>"; };
 		E4E2F5BA1179677200C21A0A /* GameSessionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameSessionViewController.h; sourceTree = "<group>"; };
 		E4E2F5BB1179677200C21A0A /* GameSessionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameSessionViewController.m; sourceTree = "<group>"; };
-		E4E2F5BC1179677200C21A0A /* GameSessionViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = GameSessionViewController.xib; path = Classes/GameSessionViewController.xib; sourceTree = "<group>"; };
+		E4E2F5BC1179677200C21A0A /* GameSessionViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = GameSessionViewController.xib; sourceTree = "<group>"; };
 		E4E2F60411796C4F00C21A0A /* ping.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ping.png; sourceTree = "<group>"; };
 		E4E2F6B611798AB700C21A0A /* ping.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ping.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -71,8 +71,10 @@
 				1D3623250D0F684500981E51 /* GCPingAppDelegate.m */,
 				28D7ACF60DDB3853001CB0EB /* GCPingViewController.h */,
 				28D7ACF70DDB3853001CB0EB /* GCPingViewController.m */,
+				2899E5210DE3E06400AC0155 /* GCPingViewController.xib */,
 				E4E2F5BA1179677200C21A0A /* GameSessionViewController.h */,
 				E4E2F5BB1179677200C21A0A /* GameSessionViewController.m */,
+				E4E2F5BC1179677200C21A0A /* GameSessionViewController.xib */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -111,8 +113,6 @@
 			children = (
 				E4E2F6B611798AB700C21A0A /* ping.wav */,
 				E4E2F60411796C4F00C21A0A /* ping.png */,
-				E4E2F5BC1179677200C21A0A /* GameSessionViewController.xib */,
-				2899E5210DE3E06400AC0155 /* GCPingViewController.xib */,
 				28AD733E0D9D9553002E5188 /* MainWindow.xib */,
 				8D1107310486CEB800E47090 /* GCPing-Info.plist */,
 			);
@@ -217,6 +217,7 @@
 				INFOPLIST_FILE = "GCPing-Info.plist";
 				OTHER_CFLAGS = "-DDEBUG=1";
 				PRODUCT_NAME = GCPing;
+				SDKROOT = iphoneos;
 			};
 			name = Debug;
 		};
@@ -229,6 +230,7 @@
 				GCC_PREFIX_HEADER = GCPing_Prefix.pch;
 				INFOPLIST_FILE = "GCPing-Info.plist";
 				PRODUCT_NAME = GCPing;
+				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -241,6 +243,7 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.1;
 				PREBINDING = NO;
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos4.1;
@@ -255,6 +258,7 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.1;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				PREBINDING = NO;
 				SDKROOT = iphoneos4.0;
