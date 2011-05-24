@@ -322,7 +322,9 @@
             }
             break;
         case kShowDisconnectedTag:
-			[self sessionDisconnected];
+            if ([_match.playerIDs count] == 0) {
+                [self sessionDisconnected];
+            }
             break;
         default:
             break;
