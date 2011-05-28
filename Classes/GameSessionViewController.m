@@ -25,6 +25,9 @@ GCPingCommand kGCPingCommandPong = @"pong";
 #define kGCPingPlayerStatusKeyID     @"playerID"
 #define kGCPingPlayerStatusKeyName   @"name"
 #define kGCPingPlayerStatusKeyStatus @"status"
+#define kGCPingStatusConnected       @"connected"
+#define kGCPingStatusDisconnected    @"disconnected"
+#define kGCPingStatusPinging         @"pinging"
 
 @interface GameSessionViewController ()
 @property (nonatomic, retain) GKMatch *match;
@@ -53,6 +56,7 @@ GCPingCommand kGCPingCommandPong = @"pong";
 @synthesize statusLabel;
 @synthesize voicechatLabel;
 @synthesize pingButton;
+@synthesize addPlayersButton;
 @synthesize playerStatusTableView;
 
 @synthesize match = _match;
@@ -85,6 +89,7 @@ GCPingCommand kGCPingCommandPong = @"pong";
     [statusLabel release];
     [voicechatLabel release];
     [pingButton release];
+    [addPlayersButton release];
     [playerStatusTableView release];
 
     [_match release];
@@ -105,9 +110,8 @@ GCPingCommand kGCPingCommandPong = @"pong";
         
         self.playerStatus = [NSMutableArray array];
 
-        [self preparePingSound];
-
         [self enableVoiceChat:NO];
+        [self preparePingSound];
     }
     return self;
 }
@@ -187,10 +191,29 @@ GCPingCommand kGCPingCommandPong = @"pong";
     }
 }
 
+- (NSMutableDictionary *)playerStatusFromID:(NSString *)playerID {
+    NSMutableDictionary *ps = nil;
+    for (NSMutableDictionary *dict in _playerStatus) {
+        if ([playerID isEqualToString:[dict objectForKey:kGCPingPlayerStatusKeyID]]) {
+            ps = dict;
+            break;
+        }
+    }
+    return ps;
+}
+
+- (void)updateStatus:(NSString *)status forPlayerID:(NSString *)playerID {
+    DDLog(@"status=%@, playerID=%@", status, playerID);
+    
+    [[self playerStatusFromID:playerID] setObject:status forKey:kGCPingPlayerStatusKeyStatus];
+    [playerStatusTableView reloadData];
+}
+
 - (void)sendPingToPlayer:(NSString *)playerID {
     NSNumber *timeSent = [NSNumber numberWithDouble:[NSDate timeIntervalSinceReferenceDate]];
     NSDictionary *params = [NSDictionary dictionaryWithObject:timeSent forKey:kGCPingMessageKeyTimeSent];
     [self sendCommand:kGCPingCommandPing withParams:params toPlayer:playerID];
+    [self updateStatus:kGCPingStatusPinging forPlayerID:playerID];
 }
 
 - (void)sendPingToAllPlayers {
@@ -202,12 +225,6 @@ GCPingCommand kGCPingCommandPong = @"pong";
 - (void)sendPongToPlayer:(NSString *)playerID withParams:(NSDictionary *)params {
     [self sendCommand:kGCPingCommandPong withParams:params toPlayer:playerID];
 }
-
-- (void)updatePlayer:(NSString *)playerID withParams:(NSDictionary *)params {
-    DDLog(@"player=%@, params=%@", playerID, params);
-    
-}
-
 
 #pragma mark -
 #pragma mark GKMatchDelegate methods
@@ -228,46 +245,54 @@ GCPingCommand kGCPingCommandPong = @"pong";
     self.pingTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(statusTimerFired:) userInfo:nil repeats:NO];
 }
 
+- (void)updateAddPlayersButton {
+    BOOL canAddPlayers = (_playerStatus.count < 3);
+    addPlayersButton.enabled = canAddPlayers;
+    [addPlayersButton setTitle:(canAddPlayers ? @"Add Players" : @"Full") forState:UIControlStateNormal];
+}
+
 - (void)addPlayerToSession:(GKPlayer *)player {
     DDLog(@"player=%@", player);
     
     [self setStatus:[NSString stringWithFormat:@"%@ connected", player.alias]];
+    
+    NSDictionary *ps = [self playerStatusFromID:player.playerID];
+    
+    if (ps != nil) {
+        [ps setValue:kGCPingStatusConnected forKey:kGCPingPlayerStatusKeyStatus];
+    }
+    else {
+        [_playerStatus addObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:
+                                  player.playerID, kGCPingPlayerStatusKeyID,
+                                  player.alias, kGCPingPlayerStatusKeyName,
+                                  kGCPingStatusConnected, kGCPingPlayerStatusKeyStatus,
+                                  nil]];
+    }
 
-    [_playerStatus addObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:
-                              player.playerID, kGCPingPlayerStatusKeyID,
-                              player.alias, kGCPingPlayerStatusKeyName,
-                              @"Connected", kGCPingPlayerStatusKeyStatus,
-                              nil]];
     [playerStatusTableView reloadData];
 
     if (_match.expectedPlayerCount == 0) {
         [self showGameReady];
     }
-}
-
-- (NSMutableDictionary *)playerStatusFromID:(NSString *)playerID {
-    NSMutableDictionary *ps = nil;
-    for (NSMutableDictionary *dict in _playerStatus) {
-        if ([playerID isEqualToString:[dict objectForKey:kGCPingPlayerStatusKeyID]]) {
-            ps = dict;
-            break;
-        }
-    }
-    return ps;
-}
-
-- (void)updateStatus:(NSString *)status forPlayerID:(NSString *)playerID {
-    DDLog(@"status=%@, playerID=%@", status, playerID);
-
-    [[self playerStatusFromID:playerID] setObject:status forKey:kGCPingPlayerStatusKeyStatus];
-    [playerStatusTableView reloadData];
+    
+    [self updateAddPlayersButton];
 }
 
 - (void)removePlayerFromSession:(NSString *)playerID {
     DDLog(@"playerID=%@", playerID);
 
-    [self updateStatus:@"Disconnected" forPlayerID:playerID];
-    [self showDisconnected:[[self playerStatusFromID:playerID] objectForKey:kGCPingPlayerStatusKeyName]];
+    NSDictionary *ps = [self playerStatusFromID:playerID];
+    if (ps) {
+        [self showDisconnected:[ps objectForKey:kGCPingPlayerStatusKeyName]];
+        [_playerStatus removeObject:ps];
+        [playerStatusTableView reloadData];
+    }
+    else {
+        // Do not show playerIDs to user, but debug that this player didn't connect due to network reasons
+        DDLog(@"Player failed to connect: %@", playerID);
+    }
+
+    [self updateAddPlayersButton];
 }
 
 - (void)handlePingCommand:(NSString *)playerID withParams:(NSDictionary *)params {
@@ -287,7 +312,7 @@ GCPingCommand kGCPingCommandPong = @"pong";
 
     NSNumber *val = [params objectForKey:kGCPingMessageKeyTimeSent];
     NSAssert(val, @"No value for key kGCPingMessageKeyTimeSent");
-    
+
     long rtt = (long)([self calculateRTT:(NSTimeInterval)[val doubleValue]] * 1000L);
 
     NSString *fmt = [NSString stringWithFormat:@"Ponged Me (%ld ms)", rtt];
@@ -313,11 +338,11 @@ GCPingCommand kGCPingCommandPong = @"pong";
 - (void)playerFromID:(NSString *)playerID withHandler:(void(^)(GKPlayer *))completionHandler {
     [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:playerID]
                   withCompletionHandler:^(NSArray *players, NSError *error) {
-                      if (error == nil) {
-                          completionHandler([players objectAtIndex:0]);
+                      if (error != nil) {
+                          [self showError:error];
                       }
                       else {
-                          [self showError:error];
+                          completionHandler([players objectAtIndex:0]);
                       }
                   }];
 }
@@ -325,11 +350,13 @@ GCPingCommand kGCPingCommandPong = @"pong";
 - (void)match:(GKMatch *)match player:(NSString *)playerID didChangeState:(GKPlayerConnectionState)state {
     switch (state) {
         case GKPlayerStateConnected:
+            DDLog(@"+++ %@ connected", playerID);
             [self playerFromID:playerID withHandler:^(GKPlayer *player) {
                 [self addPlayerToSession:player];
             }];
             break;
         case GKPlayerStateDisconnected:
+            DDLog(@"--- %@ disconnected", playerID);
             [self removePlayerFromSession:playerID];
             break;
         default:
@@ -344,6 +371,23 @@ GCPingCommand kGCPingCommandPong = @"pong";
     DDLog(@"");
     
     [self sendPingToAllPlayers];
+}
+
+- (IBAction)addPlayersButtonPressed:(id)sender {
+    DDLog(@"");
+
+    // Add more players to session
+    GKMatchRequest *request = [[[GKMatchRequest alloc] init] autorelease];
+    request.minPlayers = 2;
+    request.maxPlayers = 4;
+    [addPlayersButton setTitle:@"Searching..." forState:UIControlStateNormal];
+
+    [[GKMatchmaker sharedMatchmaker] addPlayersToMatch:_match matchRequest:request completionHandler:^(NSError *error) {
+        if (error != nil) {
+            [self showError:error];
+            [addPlayersButton setTitle:@"Add Players" forState:UIControlStateNormal];
+        }
+    }];
 }
 
 - (IBAction)disconnectButtonPressed:(id)sender {
@@ -413,6 +457,7 @@ GCPingCommand kGCPingCommandPong = @"pong";
     DDLog(@"");
     
     self.alertView = nil;
+    [self setStatus:@"Game Ready"];
 }
 
 - (void)confirmDisconnect {
@@ -450,6 +495,7 @@ GCPingCommand kGCPingCommandPong = @"pong";
         [_voiceChat stop];
     }
     _voiceChat.active = enable;
+    
 }
 
 - (void)preparePingSound {

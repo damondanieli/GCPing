@@ -19,6 +19,8 @@
     UILabel *statusLabel;
     UILabel *voicechatLabel;
     UIButton *pingButton;
+    UIButton *addPlayersButton;
+
     UITableView *playerStatusTableView;
 
 @private
@@ -38,11 +40,13 @@
 @property (nonatomic, retain) IBOutlet UILabel *statusLabel;
 @property (nonatomic, retain) IBOutlet UILabel *voicechatLabel;
 @property (nonatomic, retain) IBOutlet UIButton *pingButton;
+@property (nonatomic, retain) IBOutlet UIButton *addPlayersButton;
 @property (nonatomic, retain) IBOutlet UITableView *playerStatusTableView;
 
 - (id)initWithDelegate:(id<GameSessionViewControllerDelegate>)delegate withMatch:(GKMatch *)match;
 
 - (IBAction)pingButtonPressed:(id)sender;
+- (IBAction)addPlayersButtonPressed:(id)sender;
 - (IBAction)disconnectButtonPressed:(id)sender;
 - (IBAction)voiceChatSwitchValueChanged:(id)sender;
 - (IBAction)microphoneSwitchValueChanged:(id)sender;
