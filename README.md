@@ -21,9 +21,10 @@ Interesting features
 * Add more players (up to 4) into an existing session
 * Send reliable "ping" command to other devices and get back RTT
 
-Brought to you by Damon Danieli at [Z2Live, Inc.][1]
+Brought to you by [Damon Danieli][2] at [Z2Live, Inc.][1]
 
 [1]: http://www.z2live.com
+[2]: http://damondanieli.blogspot.com
 
 <!--
 vi: filetype=mkd
