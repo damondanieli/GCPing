@@ -83,7 +83,7 @@ BOOL isGameCenterAPIAvailable();
     DDLog(@"match=%@", match);
     
     [matchmakerViewController dismissModalViewControllerAnimated:NO];
-    
+
     [self createGameSessionWithMatch:match];
 }
 

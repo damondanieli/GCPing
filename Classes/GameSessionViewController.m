@@ -13,32 +13,52 @@
 #define kConfirmDisconnectTag 2
 #define kShowDisconnectedTag  3
 
+#define kGCPingMessageKeyCommand  @"cmd"
+#define kGCPingMessageKeyParams   @"params"
+#define kGCPingMessageKeyTimeSent @"timeSent"
+
+typedef const NSString *GCPingCommand;
+GCPingCommand kGCPingCommandUnknown = nil;
+GCPingCommand kGCPingCommandPing = @"ping";
+GCPingCommand kGCPingCommandPong = @"pong";
+
+#define kGCPingPlayerStatusKeyID     @"playerID"
+#define kGCPingPlayerStatusKeyName   @"name"
+#define kGCPingPlayerStatusKeyStatus @"status"
+
 @interface GameSessionViewController ()
 @property (nonatomic, retain) GKMatch *match;
 @property (nonatomic, retain) GKVoiceChat *voiceChat;
 @property (nonatomic, retain) NSTimer *pingTimer;
-
-- (void)updateStatus:(NSTimer *)theTimer;
+@property (nonatomic, retain) NSMutableArray *playerStatus;
+- (void)statusTimerFired:(NSTimer *)theTimer;
 - (void)setStatus:(NSString *)status;
 - (void)disconnect;
 - (void)confirmDisconnect;
 - (void)showConnecting;
-- (void)showConnected:(NSString *)playerName;
 - (void)showDisconnected:(NSString *)playerName;
 - (void)showGameReady;
 - (void)enableVoiceChat:(BOOL)enable;
 - (void)preparePingSound;
 - (void)unpreparePingSound;
 - (void)playPingSound;
+- (void)showErrorMessage:(NSString *)errorMessage;
+- (void)showError:(NSError *)error;
 @end
 
 @implementation GameSessionViewController
 
 @synthesize delegate;
+@synthesize localPlayerNameLabel;
 @synthesize statusLabel;
+@synthesize voicechatLabel;
+@synthesize pingButton;
+@synthesize playerStatusTableView;
+
 @synthesize match = _match;
 @synthesize voiceChat = _voiceChat;
 @synthesize pingTimer = _pingTimer;
+@synthesize playerStatus = _playerStatus;
 
 - (UIAlertView *)alertView {
     return _alertView;
@@ -55,36 +75,47 @@
 
 - (void)dealloc {
     self.alertView = nil;
+    self.delegate = nil;
     
     [self unpreparePingSound];
 
     [self disconnect];
 
+    [localPlayerNameLabel release];
     [statusLabel release];
+    [voicechatLabel release];
+    [pingButton release];
+    [playerStatusTableView release];
 
     [_match release];
     [_voiceChat release];
     [_pingTimer invalidate];
     [_pingTimer release];
+    [_playerStatus release];
     
     [super dealloc];
 }
 
 - (id)initWithDelegate:(id<GameSessionViewControllerDelegate>)d withMatch:(GKMatch *)m {
-    if (self = [super init]) {
+    self = [super init];
+    if (self) {
         self.delegate = d;
         self.match = m;
         _match.delegate = self;
+        
+        self.playerStatus = [NSMutableArray array];
 
         [self preparePingSound];
 
-        [self enableVoiceChat:YES];
+        [self enableVoiceChat:NO];
     }
     return self;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    localPlayerNameLabel.text = [GKLocalPlayer localPlayer].alias;
 }
 
 - (void)didReceiveMemoryWarning {
@@ -100,9 +131,88 @@
 }
 
 #pragma mark -
+#pragma mark Network Messages
+
+- (NSData *)dataFromMessage:(GCPingCommand)command withParams:(NSDictionary *)params {
+    DDLog(@"command=%@, params=%@", command, params);
+
+    if (params == nil) {
+        params = [NSDictionary dictionary];
+    }
+    NSDictionary *cmd = [NSMutableDictionary dictionaryWithObjectsAndKeys:command, kGCPingMessageKeyCommand, params, kGCPingMessageKeyParams, nil];
+    return [NSKeyedArchiver archivedDataWithRootObject:cmd];
+}
+
+- (NSDictionary *)messageFromData:(NSData *)data {
+    DDLog(@"");
+
+    NSDictionary *message = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+    NSAssert(message, @"Data from message should unarchive");
+    NSAssert([message isKindOfClass:[NSDictionary class]], @"Data expected to be NSDictionary");
+    return message;
+}
+
+- (GCPingCommand)commandFromMessage:(NSDictionary *)message {
+    DDLog(@"message=%@", message);
+
+    NSString *commandString = [message objectForKey:kGCPingMessageKeyCommand];
+    if ([kGCPingCommandPing isEqualToString:commandString]) {
+        return kGCPingCommandPing;
+    }
+    else if ([kGCPingCommandPong isEqualToString:commandString]) {
+        return kGCPingCommandPong;
+    }
+    return kGCPingCommandUnknown;
+}
+
+- (NSDictionary *)paramsFromMessage:(NSDictionary *)message {
+    DDLog(@"message=%@", message);
+
+    NSDictionary *params = [message objectForKey:kGCPingMessageKeyParams];
+    if (params == nil) {
+        params = [NSDictionary dictionary];
+    }
+    return params;
+}
+
+- (void)sendCommand:(GCPingCommand)command withParams:(NSDictionary *)params toPlayer:(NSString *)playerID {
+    DDLog(@"playerID=%@", playerID);
+    
+    NSData *data = [self dataFromMessage:command withParams:params];
+    NSError *error;
+    if ( ! [_match sendData:data toPlayers:[NSArray arrayWithObject:playerID] withDataMode:GKMatchSendDataReliable error:&error]) {
+        if (error != nil) {
+            [self showError:error];
+        }
+    }
+}
+
+- (void)sendPingToPlayer:(NSString *)playerID {
+    NSNumber *timeSent = [NSNumber numberWithDouble:[NSDate timeIntervalSinceReferenceDate]];
+    NSDictionary *params = [NSDictionary dictionaryWithObject:timeSent forKey:kGCPingMessageKeyTimeSent];
+    [self sendCommand:kGCPingCommandPing withParams:params toPlayer:playerID];
+}
+
+- (void)sendPingToAllPlayers {
+    for (NSString *playerID in _match.playerIDs) {
+        [self sendPingToPlayer:playerID];
+    }
+}
+
+- (void)sendPongToPlayer:(NSString *)playerID withParams:(NSDictionary *)params {
+    [self sendCommand:kGCPingCommandPong withParams:params toPlayer:playerID];
+}
+
+- (void)updatePlayer:(NSString *)playerID withParams:(NSDictionary *)params {
+    DDLog(@"player=%@, params=%@", playerID, params);
+    
+}
+
+
+#pragma mark -
 #pragma mark GKMatchDelegate methods
 
-- (void)updateStatus:(NSTimer *)theTimer {
+- (void)statusTimerFired:(NSTimer *)theTimer {
     DDLog(@"");
 
     [self setStatus:@""];
@@ -115,41 +225,112 @@
 
     self.statusLabel.text = @"Pinged!";
     [_pingTimer invalidate];
-    self.pingTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateStatus:) userInfo:nil repeats:NO];
+    self.pingTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(statusTimerFired:) userInfo:nil repeats:NO];
 }
 
-- (void)match:(GKMatch *)match didReceiveData:(NSData *)data fromPlayer:(NSString *)playerID
-{
-    DDLog(@"match=%@, data=%@ player=%@", match, data, playerID);
+- (void)addPlayerToSession:(GKPlayer *)player {
+    DDLog(@"player=%@", player);
     
+    [self setStatus:[NSString stringWithFormat:@"%@ connected", player.alias]];
+
+    [_playerStatus addObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:
+                              player.playerID, kGCPingPlayerStatusKeyID,
+                              player.alias, kGCPingPlayerStatusKeyName,
+                              @"Connected", kGCPingPlayerStatusKeyStatus,
+                              nil]];
+    [playerStatusTableView reloadData];
+
+    if (_match.expectedPlayerCount == 0) {
+        [self showGameReady];
+    }
+}
+
+- (NSMutableDictionary *)playerStatusFromID:(NSString *)playerID {
+    NSMutableDictionary *ps = nil;
+    for (NSMutableDictionary *dict in _playerStatus) {
+        if ([playerID isEqualToString:[dict objectForKey:kGCPingPlayerStatusKeyID]]) {
+            ps = dict;
+            break;
+        }
+    }
+    return ps;
+}
+
+- (void)updateStatus:(NSString *)status forPlayerID:(NSString *)playerID {
+    DDLog(@"status=%@, playerID=%@", status, playerID);
+
+    [[self playerStatusFromID:playerID] setObject:status forKey:kGCPingPlayerStatusKeyStatus];
+    [playerStatusTableView reloadData];
+}
+
+- (void)removePlayerFromSession:(NSString *)playerID {
+    DDLog(@"playerID=%@", playerID);
+
+    [self updateStatus:@"Disconnected" forPlayerID:playerID];
+    [self showDisconnected:[[self playerStatusFromID:playerID] objectForKey:kGCPingPlayerStatusKeyName]];
+}
+
+- (void)handlePingCommand:(NSString *)playerID withParams:(NSDictionary *)params {
+    DDLog(@"playerID=%@, params=%@", playerID, params);
+
+    [self updateStatus:@"Pinged Me" forPlayerID:playerID];
+    [self sendPongToPlayer:playerID withParams:params];
     [self showPinged];
 }
 
-- (void)match:(GKMatch *)match player:(NSString *)playerID didChangeState:(GKPlayerConnectionState)state {
-    DDLog(@"match=%@, data=%@ state=%ld", match, playerID, (long)state);
+- (NSTimeInterval)calculateRTT:(NSTimeInterval)timeSent {
+    return ([NSDate timeIntervalSinceReferenceDate] - timeSent);
+}
 
+- (void)handlePongCommand:(NSString *)playerID withParams:(NSDictionary *)params {
+    DDLog(@"playerID=%@, params=%@", playerID, params);
+
+    NSNumber *val = [params objectForKey:kGCPingMessageKeyTimeSent];
+    NSAssert(val, @"No value for key kGCPingMessageKeyTimeSent");
+    
+    long rtt = (long)([self calculateRTT:(NSTimeInterval)[val doubleValue]] * 1000L);
+
+    NSString *fmt = [NSString stringWithFormat:@"Ponged Me (%ld ms)", rtt];
+    [self updateStatus:fmt forPlayerID:playerID];
+    [playerStatusTableView reloadData];
+}
+
+- (void)match:(GKMatch *)match didReceiveData:(NSData *)data fromPlayer:(NSString *)playerID {
+    DDLog(@"match=%@, player=%@", match, playerID);
+    
+    NSDictionary *message = [self messageFromData:data];
+    GCPingCommand cmd = [self commandFromMessage:message];
+    if (cmd != kGCPingCommandUnknown) {
+        NSDictionary *params = [self paramsFromMessage:message];
+        if (cmd == kGCPingCommandPing) {
+            [self handlePingCommand:playerID withParams:params];
+        } else if (cmd == kGCPingCommandPong) {
+            [self handlePongCommand:playerID withParams:params];
+        }
+    }
+}
+
+- (void)playerFromID:(NSString *)playerID withHandler:(void(^)(GKPlayer *))completionHandler {
+    [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:playerID]
+                  withCompletionHandler:^(NSArray *players, NSError *error) {
+                      if (error == nil) {
+                          completionHandler([players objectAtIndex:0]);
+                      }
+                      else {
+                          [self showError:error];
+                      }
+                  }];
+}
+
+- (void)match:(GKMatch *)match player:(NSString *)playerID didChangeState:(GKPlayerConnectionState)state {
     switch (state) {
         case GKPlayerStateConnected:
-			[GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:playerID]
-						  withCompletionHandler:^(NSArray *players, NSError *error) {
-							  if ([players count] == 1) {
-								  GKPlayer * player = [players objectAtIndex:0];
-								  [self showConnected:player.alias];
-							  }
-						  }];
-            
-            if (match.expectedPlayerCount == 0) {
-                [self showGameReady];
-            }
+            [self playerFromID:playerID withHandler:^(GKPlayer *player) {
+                [self addPlayerToSession:player];
+            }];
             break;
         case GKPlayerStateDisconnected:
-			[GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:playerID]
-						  withCompletionHandler:^(NSArray *players, NSError *error) {
-							  if ([players count] == 1) {
-								  GKPlayer * player = [players objectAtIndex:0];
-								  [self showDisconnected:player.alias];
-							  }
-						  }];
+            [self removePlayerFromSession:playerID];
             break;
         default:
             break;
@@ -161,13 +342,8 @@
 
 - (IBAction)pingButtonPressed:(id)sender {
     DDLog(@"");
-
-    NSError *error;
-    if ( ! [_match sendDataToAllPlayers:[NSData dataWithBytes:"ping" length:5] withDataMode:GKMatchSendDataReliable error:&error]) {
-        if (error != nil) {
-            DDLog(@"error=%@", [error localizedDescription]);
-        }
-    }
+    
+    [self sendPingToAllPlayers];
 }
 
 - (IBAction)disconnectButtonPressed:(id)sender {
@@ -218,10 +394,6 @@
     DDLog(@"");
 }
 
-- (void)showConnected:(NSString *)playerName {
-    DDLog(@"playerName=%@", playerName);
-    [self setStatus:[NSString stringWithFormat:@"%@ connected", playerName]];
-}
 
 - (void)showDisconnected:(NSString *)playerName {
     DDLog(@"playerName=%@", playerName);
@@ -301,6 +473,46 @@
     DDLog(@"");
 
     AudioServicesPlaySystemSound(pingSound);
+}
+
+- (void)showErrorMessage:(NSString *)errorMessage {
+    DDLog(@"errorMessage=%@", errorMessage);
+    
+    self.alertView = [[[UIAlertView alloc] initWithTitle:@"Error" 
+                                                 message:errorMessage
+                                                delegate:self 
+                                       cancelButtonTitle:@"Cancel"
+                                       otherButtonTitles:@"Disconnect", nil] autorelease];
+    _alertView.tag = kConfirmDisconnectTag;
+    [_alertView show];
+    
+}
+
+- (void)showError:(NSError *)error {
+    [self showErrorMessage:[error localizedDescription]];
+}
+
+#pragma mark -
+#pragma mark UITableViewDelegate
+
+#pragma mark -
+#pragma mark UITableViewDataSource
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return _playerStatus.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString *CellIdentifier = @"PlayerCell";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if (cell == nil) {
+        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier] autorelease];
+    }
+    
+    NSDictionary *playerStatus = [_playerStatus objectAtIndex:[indexPath row]];
+    cell.textLabel.text = [playerStatus objectForKey:kGCPingPlayerStatusKeyName];
+    cell.detailTextLabel.text = [playerStatus objectForKey:kGCPingPlayerStatusKeyStatus];
+    return cell;
 }
 
 #pragma mark -

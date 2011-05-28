@@ -12,24 +12,33 @@
 
 @protocol GameSessionViewControllerDelegate;
 
-@interface GameSessionViewController : UIViewController <GKMatchDelegate, UIAlertViewDelegate> {
+@interface GameSessionViewController : UIViewController <GKMatchDelegate, UITableViewDelegate, UITableViewDataSource, UIAlertViewDelegate> {
     id<GameSessionViewControllerDelegate> delegate;
     
-    IBOutlet UILabel *statusLabel;
-    IBOutlet UILabel *voicechatLabel;
-    IBOutlet UIButton *pingButton;
+    UILabel *localPlayerNameLabel;
+    UILabel *statusLabel;
+    UILabel *voicechatLabel;
+    UIButton *pingButton;
+    UITableView *playerStatusTableView;
 
 @private
     GKMatch *_match;
     GKVoiceChat *_voiceChat;
     NSTimer *_pingTimer;
+    NSMutableArray *_playerStatus;
+
     UIAlertView *_alertView;
+
     CFURLRef pingSoundURLRef;
     SystemSoundID pingSound;
 }
 
 @property (nonatomic, assign) id<GameSessionViewControllerDelegate> delegate;
-@property (nonatomic, retain) UILabel *statusLabel;
+@property (nonatomic, retain) IBOutlet UILabel *localPlayerNameLabel;
+@property (nonatomic, retain) IBOutlet UILabel *statusLabel;
+@property (nonatomic, retain) IBOutlet UILabel *voicechatLabel;
+@property (nonatomic, retain) IBOutlet UIButton *pingButton;
+@property (nonatomic, retain) IBOutlet UITableView *playerStatusTableView;
 
 - (id)initWithDelegate:(id<GameSessionViewControllerDelegate>)delegate withMatch:(GKMatch *)match;
 
