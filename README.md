@@ -8,7 +8,7 @@ Requires Game Center compatible devices (OS 4.1+).
 Warning
 -------
 
-* Peer-to-Peer networking of mobile devices is very flaky
+* Peer-to-Peer networking in Game Center is very flaky (IMHO)
   * Sessions may start but opponents may not connect
   * Data may be sent one direction, but not be received by the other
 
